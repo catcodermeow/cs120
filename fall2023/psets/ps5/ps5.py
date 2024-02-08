@@ -130,8 +130,23 @@ def bfs_2_coloring(G, precolored_nodes=None):
     # TODO: Complete this function by implementing two-coloring using the colors 0 and 1.
     # If there is no valid coloring, reset all the colors to None using G.reset_colors()
     
-    G.reset_colors()
-    return None
+    for node in range(G.N):
+        if node not in visited:
+            frontier = [node]
+            G.colors[node] = 0
+
+            while frontier: 
+                source = frontier.pop(0)
+                for neighbor in G.edges[source]:
+                    if G.colors[neighbor] == G.colors[source]:
+                        G.reset_colors()
+                        return None
+                    if neighbor not in visited:
+                        G.colors[neighbor] = 0 if G.colors[source] == 1 else 1
+                        frontier.append(neighbor)
+                visited.add(source)
+    return G.colors
+
 
 '''
     Part B: Implement is_independent_set.
@@ -142,6 +157,9 @@ def bfs_2_coloring(G, precolored_nodes=None):
 def is_independent_set(G, subset):
     # TODO: Complete this function
 
+    for u in subset:
+        if not G.edges[u].isdisjoint(subset):
+            return False
     return True
 
 '''
@@ -169,9 +187,17 @@ def is_independent_set(G, subset):
 # If no coloring is possible, resets all of G's colors to None and returns None.
 def iset_bfs_3_coloring(G):
     # TODO: Complete this function.
-
+    
+    for i in range((G.N // 3) + 1):
+        for S in combinations(list(range(0,G.N)), i):
+            subset =  list(S)
+            if is_independent_set(G, subset):
+                fs = bfs_2_coloring(G, precolored_nodes=subset)
+                if fs:
+                    return fs
     G.reset_colors()
     return None
+
 
 # Feel free to add miscellaneous tests below!
 if __name__ == "__main__":

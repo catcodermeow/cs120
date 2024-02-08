@@ -192,6 +192,22 @@ def sat_3_coloring(G):
 
     # TODO: Add the clauses to the solver
 
+    # For each node, add clauses to ensure it gets exactly one color
+    for i in range(G.N):
+        # If only one color is true
+        solver.add_clause([3*i + 1, 3*i + 2, 3*i + 3])
+        
+        # If more than one color is true
+        for c1, c2 in combinations([3*i + 1, 3*i + 2, 3*i + 3], 2):
+            solver.add_clause([-c1, -c2])
+
+    # Make sure that adjacent nodes don't share the same color
+    for i in range(G.N):
+        for j in G.edges[i]:
+            if i < j:  # Avoid adding duplicate clauses
+                for c in range(1, 4):
+                    solver.add_clause([-((3*i) + c), -((3*j) + c)])
+                    
     # Attempt to solve, return None if no solution possible
     if not solver.solve():
         G.reset_colors()
@@ -201,6 +217,13 @@ def sat_3_coloring(G):
     solution = solver.get_model()
 
     # TODO: If a solution is found, convert it into a coloring and update G.colors
+
+    G.colors = [None] * G.N
+    for i in range(G.N):
+        for c in range(1, 4):
+            if solution[3*i + c - 1] > 0:  # Index adjustment b/c SAT variables start from 1
+                G.colors[i] = c
+                break
 
     return G.colors
 
